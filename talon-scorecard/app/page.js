@@ -3,7 +3,6 @@ import { reachSummary, funnel, metricCards, activityRows } from '../lib/compute.
 import { CHECKPOINT_LABEL, TARGETS, BASELINE_LABEL } from '../lib/config.js';
 import Uploader from '../components/Uploader.js';
 import ContactsTable from '../components/ContactsTable.js';
-import SignOut from '../components/SignOut.js';
 import { RowDelete, ClearData, SectionDelete } from '../components/DeleteControls.js';
 
 export const dynamic = 'force-dynamic';
@@ -93,7 +92,6 @@ export default async function Home() {
         </div>
         <div className="head-actions">
           <a className="button" href="/Talon_GTM_Tracker_Template.xlsx" download>Download template</a>
-          <SignOut />
         </div>
       </header>
 
