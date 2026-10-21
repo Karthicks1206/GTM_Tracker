@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs';
 import JSZip from 'jszip';
 import Papa from 'papaparse';
-import { SPECS, detectKind, cleanRows, norm } from './sheets.js';
+import { SPECS, detectKind, cleanRows, norm, hasRequired } from './sheets.js';
 
 // exceljs cell values can be rich text, hyperlinks, formulas or dates.
 function cellValue(v) {
@@ -72,9 +72,9 @@ async function parseXlsx(buffer, warnings) {
       warnings.push(`More than one ${kind} sheet found; used the first.`);
       return;
     }
-    const missing = SPECS[kind].required.filter((h) => !headers.some((x) => norm(x) === h));
-    if (missing.length) {
-      warnings.push(`Sheet "${ws.name}" is missing column(s): ${missing.join(', ')}. Skipped.`);
+    if (!hasRequired(SPECS[kind], headers.filter(Boolean))) {
+      const need = [...SPECS[kind].required, ...(SPECS[kind].requiredAny ? [SPECS[kind].requiredAny[0]] : [])];
+      warnings.push(`Sheet "${ws.name}" is missing a required column (${need.join(', ')}). Skipped.`);
       return;
     }
     const rows = [];

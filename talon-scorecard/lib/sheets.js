@@ -27,9 +27,16 @@ export const SPECS = {
   },
   metrics: {
     sheetName: 'weekly metrics',
-    required: ['week', 'registered employers'],
+    required: ['week'],
+    requiredAny: ['new registered employers', 'registered employers'],
     columns: {
       week: 'week',
+      'new registered employers': 'registeredEmployers',
+      'new active employers': 'activeEmployers',
+      'new completed student profiles': 'completedProfiles',
+      'new candidate handoffs': 'candidateHandoffs',
+      'new placements': 'placements',
+      // older header names still accepted
       'registered employers': 'registeredEmployers',
       'active employers': 'activeEmployers',
       'completed student profiles': 'completedProfiles',
@@ -58,10 +65,14 @@ export const SPECS = {
 };
 
 // Which kind of sheet is this, judged by its headers.
-export function detectKind(headers) {
+export function hasRequired(spec, headers) {
   const set = new Set(headers.map(norm));
+  return spec.required.every((h) => set.has(h)) && (!spec.requiredAny || spec.requiredAny.some((h) => set.has(h)));
+}
+
+export function detectKind(headers) {
   for (const [kind, spec] of Object.entries(SPECS)) {
-    if (spec.required.every((h) => set.has(h))) return kind;
+    if (hasRequired(spec, headers)) return kind;
   }
   return null;
 }

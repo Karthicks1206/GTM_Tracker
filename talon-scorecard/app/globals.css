@@ -132,3 +132,8 @@ body {
 .weeks { margin-top: 14px; }
 .weeks summary { cursor: pointer; }
 .weeks .table-wrap { margin-top: 10px; }
+
+.bar { display: flex; }
+.bar > .bar-base { background: var(--muted); opacity: .35; border-radius: 4px 0 0 4px; }
+.bar > .bar-gain { background: var(--accent); border-radius: 0 4px 4px 0; }
+.gain { color: var(--accent); }

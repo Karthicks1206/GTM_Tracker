@@ -1,6 +1,6 @@
 import { getData } from '../lib/store.js';
 import { reachSummary, funnel, metricCards, activityRows } from '../lib/compute.js';
-import { CHECKPOINT_LABEL, TARGETS } from '../lib/config.js';
+import { CHECKPOINT_LABEL, TARGETS, BASELINE_LABEL } from '../lib/config.js';
 import Uploader from '../components/Uploader.js';
 import ContactsTable from '../components/ContactsTable.js';
 import SignOut from '../components/SignOut.js';
@@ -34,27 +34,28 @@ function Sparkline({ series }) {
 }
 
 function MetricCard({ m }) {
+  const sign = (n) => `${n > 0 ? '+' : ''}${int.format(n)}`;
   return (
     <div className="card metric">
       <div className="label">{m.label}</div>
       <div className="muted small">{m.definition}</div>
       <div className="big">
-        <span className="num">{m.latest === null ? '—' : int.format(m.latest)}</span>
+        <span className="num">{int.format(m.latest)}</span>
         <span className="muted small">of {int.format(m.target)} by {CHECKPOINT_LABEL}</span>
       </div>
-      <div className="bar"><div style={{ width: `${Math.min((m.pct ?? 0) * 100, 100)}%` }} /></div>
-      {m.latest !== null ? (
-        <div className="muted small meta">
-          <div>
-            {pct(m.pct)} of target ·{' '}
-            {m.change === null ? 'first week tracked' : `${m.change > 0 ? '+' : ''}${int.format(m.change)} vs last week`}
-          </div>
-          <div>{m.gap === 0 ? `${CHECKPOINT_LABEL} target reached` : `Need ${int.format(m.gap)} more · ~${oneDec(m.perWeek)} a week`}</div>
-          <div>Spring: {int.format(m.spring)} by {m.springBy}</div>
+      <div className="bar" title={`Started at ${int.format(m.baseline)}`}>
+        <div className="bar-base" style={{ width: `${Math.min((m.baseline / m.target) * 100, 100)}%` }} />
+        <div className="bar-gain" style={{ width: `${Math.min(((m.latest - m.baseline) / m.target) * 100, 100 - Math.min((m.baseline / m.target) * 100, 100))}%` }} />
+      </div>
+      <div className="muted small meta">
+        <div>
+          <strong className="gain">{sign(m.gained)}</strong> since {BASELINE_LABEL} (started at {int.format(m.baseline)})
+          {m.neededFromStart > 0 && ` · ${pct(Math.min(m.progressFromStart, 1))} of the way`}
         </div>
-      ) : (
-        <div className="muted small">Add a row on the Weekly metrics sheet.</div>
-      )}
+        <div>{m.lastWeek ? `Week of ${fmtDay(m.lastWeek.week)}: ${sign(m.lastWeek.value)}` : 'No weekly entries yet'}</div>
+        <div>{m.gap === 0 ? `${CHECKPOINT_LABEL} target reached` : `Need ${int.format(m.gap)} more · ~${oneDec(m.perWeek)} a week`}</div>
+        <div>Spring: {int.format(m.spring)} by {m.springBy}</div>
+      </div>
       <Sparkline series={m.series} />
     </div>
   );
@@ -67,8 +68,7 @@ export default async function Home() {
   const cards = metricCards(data.metrics);
   const acts = activityRows(data.activities);
   const weeks = [...data.metrics].sort((a, b) => (a.week < b.week ? 1 : -1));
-  const tracked = cards.filter((c) => c.latest !== null);
-  const worst = [...tracked].sort((a, b) => a.pct - b.pct)[0];
+  const worst = [...cards].sort((a, b) => a.progressFromStart - b.progressFromStart)[0];
   const biggestDrop = steps
     .slice(1)
     .filter((s) => s.fromPrev !== null)
@@ -84,8 +84,7 @@ export default async function Home() {
           </p>
           {worst && (
             <p className="takeaway">
-              Week of {fmtDay(worst.latestWeek)}. Furthest from target: {worst.label.toLowerCase()}, {int.format(worst.latest)} of{' '}
-              {int.format(worst.target)}. About {oneDec(worst.perWeek)} a week needed to hit {CHECKPOINT_LABEL}.
+              Furthest behind: {worst.label.toLowerCase()}, {int.format(worst.gained)} added of the {int.format(worst.neededFromStart)} needed since {BASELINE_LABEL}. About {oneDec(worst.perWeek)} a week to hit {CHECKPOINT_LABEL}.
             </p>
           )}
         </div>
@@ -140,7 +139,7 @@ export default async function Home() {
       </section>
 
       <section>
-        <h2 className="h2">North-star metrics · {CHECKPOINT_LABEL} checkpoint</h2>
+        <h2 className="h2">North-star metrics · tracking since {BASELINE_LABEL} · {CHECKPOINT_LABEL} checkpoint</h2>
         <div className="grid">
           {cards.map((m) => <MetricCard key={m.key} m={m} />)}
         </div>
@@ -152,7 +151,7 @@ export default async function Home() {
                 <thead>
                   <tr>
                     <th>Week</th>
-                    {TARGETS.map((t) => <th key={t.key} className="num-col">{t.label}</th>)}
+                    {TARGETS.map((t) => <th key={t.key} className="num-col">New {t.label.toLowerCase()}</th>)}
                     <th aria-label="Delete" />
                   </tr>
                 </thead>

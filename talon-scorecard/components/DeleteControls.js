@@ -67,6 +67,7 @@ export function ClearData() {
 
   return (
     <div className="clear-data">
+      <span className="muted small">Delete data:</span>
       <select className="input" value={part} onChange={(e) => setPart(e.target.value)} aria-label="Section to clear">
         {OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
