@@ -16,6 +16,8 @@ export async function POST(req) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const { parts, warnings } = await parseUpload(file.name, buffer);
+    // Give every row an id so it can be deleted from the site.
+    for (const rows of Object.values(parts)) for (const r of rows) r.id = crypto.randomUUID();
 
     const current = await getData();
     // Each sheet in the file replaces that part of the data; parts not in the file are kept.

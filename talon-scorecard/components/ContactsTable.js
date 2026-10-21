@@ -1,6 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { CONTACT_STATUSES } from '../lib/config.js';
+import { RowDelete } from './DeleteControls.js';
 
 const fmtDate = (iso) => (iso ? new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }) : '—');
 const slug = (s) => s.toLowerCase().replace(/[^a-z]+/g, '-');
@@ -59,11 +60,12 @@ export default function ContactsTable({ contacts }) {
                   </button>
                 </th>
               ))}
+              <th aria-label="Delete" />
             </tr>
           </thead>
           <tbody>
             {rows.map((c, i) => (
-              <tr key={`${c.company}-${c.email}-${i}`}>
+              <tr key={c.id ?? `${c.company}-${c.email}-${i}`}>
                 {COLUMNS.map((col) => (
                   <td key={col.key} className={col.hideNarrow ? 'hide-narrow' : ''}>
                     {col.key === 'status' ? (
@@ -80,10 +82,11 @@ export default function ContactsTable({ contacts }) {
                     )}
                   </td>
                 ))}
+                <td><RowDelete part="contacts" id={c.id} label={c.name ? `${c.name}, ${c.company}` : c.company} /></td>
               </tr>
             ))}
             {!rows.length && (
-              <tr><td colSpan={COLUMNS.length} className="muted">No contacts match.</td></tr>
+              <tr><td colSpan={COLUMNS.length + 1} className="muted">No contacts match.</td></tr>
             )}
           </tbody>
         </table>

@@ -1,9 +1,10 @@
 import { getData } from '../lib/store.js';
 import { reachSummary, funnel, metricCards, activityRows } from '../lib/compute.js';
-import { CHECKPOINT_LABEL } from '../lib/config.js';
+import { CHECKPOINT_LABEL, TARGETS } from '../lib/config.js';
 import Uploader from '../components/Uploader.js';
 import ContactsTable from '../components/ContactsTable.js';
 import SignOut from '../components/SignOut.js';
+import { RowDelete, ClearData } from '../components/DeleteControls.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,6 +66,7 @@ export default async function Home() {
   const steps = funnel(data.contacts);
   const cards = metricCards(data.metrics);
   const acts = activityRows(data.activities);
+  const weeks = [...data.metrics].sort((a, b) => (a.week < b.week ? 1 : -1));
   const tracked = cards.filter((c) => c.latest !== null);
   const worst = [...tracked].sort((a, b) => a.pct - b.pct)[0];
   const biggestDrop = steps
@@ -97,7 +99,10 @@ export default async function Home() {
         <p className="card error">Storage isn&apos;t connected. Add the Upstash Redis integration to this project in Vercel, then redeploy.</p>
       )}
 
-      <Uploader />
+      <div className="upload-row">
+        <Uploader />
+        <ClearData />
+      </div>
 
       <section>
         <h2 className="h2">Outreach</h2>
@@ -139,6 +144,31 @@ export default async function Home() {
         <div className="grid">
           {cards.map((m) => <MetricCard key={m.key} m={m} />)}
         </div>
+        {weeks.length > 0 && (
+          <details className="card weeks">
+            <summary className="label">Weekly entries ({weeks.length})</summary>
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Week</th>
+                    {TARGETS.map((t) => <th key={t.key} className="num-col">{t.label}</th>)}
+                    <th aria-label="Delete" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {weeks.map((w, i) => (
+                    <tr key={w.id ?? `${w.week}-${i}`}>
+                      <td>{fmtDay(w.week)}</td>
+                      {TARGETS.map((t) => <td key={t.key} className="num-col">{w[t.key] === null ? '—' : int.format(w[t.key])}</td>)}
+                      <td><RowDelete part="metrics" id={w.id} label={`week of ${fmtDay(w.week)}`} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        )}
       </section>
 
       <section>
@@ -155,12 +185,12 @@ export default async function Home() {
                 <tr>
                   <th>Activity</th><th>When</th><th className="hide-narrow">Side</th>
                   <th className="num-col">Reached</th><th className="num-col">Converted</th><th className="num-col">Conversion</th>
-                  <th className="hide-narrow">Result</th><th>Status</th>
+                  <th className="hide-narrow">Result</th><th>Status</th><th aria-label="Delete" />
                 </tr>
               </thead>
               <tbody>
                 {acts.map((a, i) => (
-                  <tr key={`${a.activity}-${i}`}>
+                  <tr key={a.id ?? `${a.activity}-${i}`}>
                     <td>{a.activity}</td>
                     <td>{a.when || '—'}</td>
                     <td className="hide-narrow">{a.side || '—'}</td>
@@ -169,9 +199,10 @@ export default async function Home() {
                     <td className="num-col">{a.conversion === null ? '—' : pct(a.conversion, 1)}</td>
                     <td className="hide-narrow">{a.result || '—'}</td>
                     <td>{a.status ? <span className={`chip a-${slug(a.status)}`}>{a.status}</span> : '—'}</td>
+                    <td><RowDelete part="activities" id={a.id} label={a.activity} /></td>
                   </tr>
                 ))}
-                {!acts.length && <tr><td colSpan={8} className="muted">No activities yet.</td></tr>}
+                {!acts.length && <tr><td colSpan={9} className="muted">No activities yet.</td></tr>}
               </tbody>
             </table>
           </div>
