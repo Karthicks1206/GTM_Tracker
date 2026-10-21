@@ -1,6 +1,6 @@
 // Pure helpers that turn raw rows (arrays of header -> value) into clean records.
 // No dependencies, so they can be tested with plain Node.
-import { CONTACT_STATUSES, ACTIVITY_STATUSES, TARGETS } from './config.js';
+import { CONTACT_STATUSES, ACTIVITY_STATUSES, TARGETS, BASELINE_DATE } from './config.js';
 
 export const norm = (s) => String(s ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
 
@@ -36,7 +36,7 @@ export const SPECS = {
       'new completed student profiles': 'completedProfiles',
       'new candidate handoffs': 'candidateHandoffs',
       'new placements': 'placements',
-      // older header names still accepted
+      // older "running total" headers: converted to weekly changes (see totalsToChanges)
       'registered employers': 'registeredEmployers',
       'active employers': 'activeEmployers',
       'completed student profiles': 'completedProfiles',
@@ -149,5 +149,34 @@ export function cleanRows(kind, rows, warnings) {
     }
     out.push(rec);
   });
+  if (kind === 'metrics' && usesTotals(rows)) {
+    warnings.push('Weekly metrics used running-total columns, so they were converted to weekly changes from the Oct 21 starting totals. Use the "New …" columns from the latest template to avoid this.');
+    return totalsToChanges(out);
+  }
+  return out;
+}
+
+const TOTAL_HEADERS = ['registered employers', 'active employers', 'completed student profiles', 'candidate handoffs', 'placements'];
+
+function usesTotals(rows) {
+  const headers = new Set(rows.flatMap((r) => Object.keys(r)).map(norm));
+  return TOTAL_HEADERS.some((h) => headers.has(h)) && !headers.has('new registered employers');
+}
+
+// Running totals -> change since the previous row, starting from the fixed baseline.
+// Rows dated before the baseline only set the starting point and are dropped.
+export function totalsToChanges(rows) {
+  const sorted = [...rows].sort((a, b) => (a.week < b.week ? -1 : 1));
+  const prev = Object.fromEntries(TARGETS.map((t) => [t.key, t.baseline]));
+  const out = [];
+  for (const r of sorted) {
+    const change = { ...r };
+    for (const t of TARGETS) {
+      if (r[t.key] === null || r[t.key] === undefined) continue;
+      change[t.key] = r[t.key] - prev[t.key];
+      prev[t.key] = r[t.key];
+    }
+    if (r.week >= BASELINE_DATE) out.push(change);
+  }
   return out;
 }
