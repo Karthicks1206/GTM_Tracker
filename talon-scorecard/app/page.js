@@ -77,8 +77,11 @@ export default async function Home() {
   return (
     <main className="page">
       <header className="head">
-        <div>
+        <div className="brand">
+          <img src="/talon-logo.svg" alt="Talon" className="logo" width={40} height={40} />
           <h1 className="title">Talon GTM scorecard</h1>
+        </div>
+        <div className="head-details">
           <p className="muted">
             {data.uploadedAt ? `Last updated ${fmtStamp(data.uploadedAt)} from ${data.fileName}` : 'No data yet. Download the template, fill it in and upload it.'}
           </p>

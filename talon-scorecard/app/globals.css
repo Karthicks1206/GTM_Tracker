@@ -47,7 +47,19 @@ body {
 .warn { color: var(--warn); cursor: pointer; }
 .takeaway { margin: 6px 0 0; font-weight: 500; }
 
-.head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.head {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;
+  background: #ffffff; color: #1d1d1f; border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 18px 20px;
+}
+.head .muted, .head .takeaway { color: #1d1d1f; }
+.head .muted { color: #62636b; }
+.head-details { flex: 1 1 260px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo {
+  flex: none; width: 40px; height: 40px; padding: 8px; border-radius: 10px;
+  background: #cc0000; box-sizing: border-box;
+}
 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
