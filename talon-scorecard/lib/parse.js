@@ -1,4 +1,5 @@
 import ExcelJS from 'exceljs';
+import JSZip from 'jszip';
 import Papa from 'papaparse';
 import { SPECS, detectKind, cleanRows, norm } from './sheets.js';
 
@@ -16,9 +17,49 @@ function cellValue(v) {
   return v;
 }
 
+// exceljs crashes ("reading 'comments'") on workbooks with cell comments or notes.
+// We only need cell values, so remove comment parts from the file before loading it.
+async function stripComments(buffer) {
+  const zip = await JSZip.loadAsync(buffer);
+  const isCommentPart = (p) =>
+    /^xl\/comments/i.test(p) || // Excel: xl/comments1.xml · openpyxl: xl/comments/comment1.xml
+    /^xl\/threadedComments\//i.test(p) ||
+    /^xl\/persons\//i.test(p) ||
+    /^xl\/drawings\/[^/]*\.vml$/i.test(p); // vmlDrawing1.vml, commentsDrawing1.vml
+
+  let changed = false;
+  for (const p of Object.keys(zip.files)) {
+    if (isCommentPart(p)) {
+      zip.remove(p);
+      changed = true;
+    }
+  }
+  if (!changed) return buffer;
+
+  // Drop relationships that point at the removed parts.
+  for (const p of Object.keys(zip.files).filter((f) => /\.rels$/i.test(f))) {
+    const xml = await zip.file(p).async('string');
+    const cleaned = xml.replace(/<Relationship\b[^>]*Type="[^"]*(comments|vmlDrawing|threadedComment|person)[^"]*"[^>]*\/>/gi, '');
+    if (cleaned !== xml) zip.file(p, cleaned);
+  }
+  // Drop sheet references to the legacy comment drawing.
+  for (const p of Object.keys(zip.files).filter((f) => /^xl\/worksheets\/sheet\d*\.xml$/i.test(f))) {
+    const xml = await zip.file(p).async('string');
+    const cleaned = xml.replace(/<legacyDrawing\b[^>]*\/>/gi, '');
+    if (cleaned !== xml) zip.file(p, cleaned);
+  }
+  // Drop content-type entries for the removed parts.
+  const ctPath = '[Content_Types].xml';
+  if (zip.file(ctPath)) {
+    const xml = await zip.file(ctPath).async('string');
+    zip.file(ctPath, xml.replace(/<Override\b[^>]*PartName="\/xl\/(comments[^"]*|threadedComments\/[^"]*|persons\/[^"]*|drawings\/[^"\/]*\.vml)"[^>]*\/>/gi, ''));
+  }
+  return zip.generateAsync({ type: 'nodebuffer' });
+}
+
 async function parseXlsx(buffer, warnings) {
   const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(buffer);
+  await wb.xlsx.load(await stripComments(buffer));
   const found = {};
   wb.eachSheet((ws) => {
     const headerRow = ws.getRow(1).values; // 1-indexed
