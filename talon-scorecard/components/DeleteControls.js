@@ -35,7 +35,34 @@ export function RowDelete({ part, id, label }) {
         }
       }}
     >
-      ×
+      Delete
+    </button>
+  );
+}
+
+// "Delete all" button for one section, shown next to its heading.
+export function SectionDelete({ part, label, count }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  if (!count) return null;
+  return (
+    <button
+      className="button danger small-btn"
+      disabled={busy}
+      onClick={async () => {
+        if (!window.confirm(`Delete all ${count} ${label}? This can't be undone, but you can re-upload your Excel file.`)) return;
+        setBusy(true);
+        try {
+          await callDelete({ part });
+          router.refresh();
+        } catch (e) {
+          window.alert(e.message);
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      {busy ? 'Deleting…' : `Delete all ${label}`}
     </button>
   );
 }

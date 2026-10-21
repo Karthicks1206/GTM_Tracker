@@ -124,11 +124,15 @@ body {
 .button.danger { color: var(--bad); border-color: var(--bad); }
 .button.danger:hover { background: var(--bad); color: #fff; }
 .row-delete {
-  font: inherit; font-size: 16px; line-height: 1; width: 26px; height: 26px; border-radius: 6px;
-  border: 1px solid transparent; background: none; color: var(--muted); cursor: pointer;
+  font: inherit; font-size: 12px; padding: 2px 9px; border-radius: 6px; white-space: nowrap;
+  border: 1px solid var(--bad); background: none; color: var(--bad); cursor: pointer;
 }
-.row-delete:hover, .row-delete:focus-visible { color: var(--bad); border-color: var(--bad); outline: none; }
+.row-delete:hover, .row-delete:focus-visible { background: var(--bad); color: #fff; outline: none; }
 .row-delete:disabled { opacity: .4; }
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.section-head .h2 { margin: 0; }
+.weeks-head { margin: 10px 0 0; }
+.small-btn { font-size: 13px; padding: 5px 12px; }
 .weeks { margin-top: 14px; }
 .weeks summary { cursor: pointer; }
 .weeks .table-wrap { margin-top: 10px; }

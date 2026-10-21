@@ -4,7 +4,7 @@ import { CHECKPOINT_LABEL, TARGETS, BASELINE_LABEL } from '../lib/config.js';
 import Uploader from '../components/Uploader.js';
 import ContactsTable from '../components/ContactsTable.js';
 import SignOut from '../components/SignOut.js';
-import { RowDelete, ClearData } from '../components/DeleteControls.js';
+import { RowDelete, ClearData, SectionDelete } from '../components/DeleteControls.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -146,6 +146,10 @@ export default async function Home() {
         {weeks.length > 0 && (
           <details className="card weeks">
             <summary className="label">Weekly entries ({weeks.length})</summary>
+            <div className="section-head weeks-head">
+              <span className="muted small">New numbers entered per week, added to the Oct 21 starting totals.</span>
+              <SectionDelete part="metrics" label="weekly entries" count={weeks.length} />
+            </div>
             <div className="table-wrap">
               <table className="table">
                 <thead>
@@ -171,12 +175,18 @@ export default async function Home() {
       </section>
 
       <section>
-        <h2 className="h2">Contacts</h2>
+        <div className="section-head">
+          <h2 className="h2">Contacts</h2>
+          <SectionDelete part="contacts" label="contacts" count={data.contacts.length} />
+        </div>
         <ContactsTable contacts={data.contacts} />
       </section>
 
       <section>
-        <h2 className="h2">What we tried</h2>
+        <div className="section-head">
+          <h2 className="h2">What we tried</h2>
+          <SectionDelete part="activities" label="activities" count={acts.length} />
+        </div>
         <div className="card">
           <div className="table-wrap">
             <table className="table">
