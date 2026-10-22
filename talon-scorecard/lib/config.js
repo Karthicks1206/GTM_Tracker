@@ -8,11 +8,11 @@ export const CHECKPOINT_DATE = '2026-12-15';
 export const CHECKPOINT_LABEL = 'Dec 15';
 
 export const TARGETS = [
-  { key: 'registeredEmployers', label: 'Registered employers', definition: 'Companies with a Talon account', baseline: 26, target: 45, spring: 75, springBy: 'May 2027' },
-  { key: 'activeEmployers', label: 'Active employers', definition: 'Registered and sent at least one interview request', baseline: 4, target: 15, spring: 30, springBy: 'May 2027' },
+  { key: 'registeredEmployers', label: 'Registered employers', definition: 'Companies with a Talon account', baseline: 26, target: 45, spring: 150, springBy: 'May 2027' },
+  { key: 'activeEmployers', label: 'Active employers', definition: 'Registered and sent at least one interview request', baseline: 4, target: 15, spring: 60, springBy: 'May 2027' },
   { key: 'completedProfiles', label: 'Completed student profiles', definition: 'Resume uploaded and visible in search', baseline: 650, target: 1000, spring: 1300, springBy: 'mid-March 2027' },
-  { key: 'candidateHandoffs', label: 'Candidate handoffs', definition: 'Student finished the AI interview and the employer advanced them', baseline: 8, target: 20, spring: 100, springBy: 'May 2027' },
-  { key: 'placements', label: 'Placements', definition: 'Offer accepted (on-campus jobs count)', baseline: 1, target: 5, spring: 20, springBy: 'May 2027' },
+  { key: 'candidateHandoffs', label: 'Candidate handoffs', definition: 'Student finished the AI interview and the employer advanced them', baseline: 8, target: 20, spring: 200, springBy: 'May 2027' },
+  { key: 'placements', label: 'Placements', definition: 'Offer accepted (on-campus jobs count)', baseline: 1, target: 5, spring: 40, springBy: 'May 2027' },
 ];
 
 export const CONTACT_STATUSES = [
